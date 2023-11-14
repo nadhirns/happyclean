@@ -87,6 +87,7 @@ class _NavbarState extends State<Navbar> {
       final myUserData = json.decode(userdataget);
       userId = myUserData['id'];
     }
+    return null;
   }
 
   final List<Task> tasks = [];
@@ -386,11 +387,11 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
         ),
         TextButton(
             onPressed: () {
-              final newTask = Task(
-                  selectedDate: selectedDate,
-                  selectedStartTime: selectedStartTime,
-                  selectedEndTime: selectedEndTime,
-                  userId: widget.getId.toInt());
+              // final newTask = Task(
+              //     selectedDate: selectedDate,
+              //     selectedStartTime: selectedStartTime,
+              //     selectedEndTime: selectedEndTime,
+              //     userId: widget.getId.toInt());
             },
             child: const Text('Add'))
       ],
