@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 // import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 // import 'package:happyclean/pages/addtask.dart';
-import 'package:happyclean/controllers/task_controller.dart';
+// import 'package:happyclean/controllers/task_controller.dart';
 import 'package:happyclean/models/task_model.dart';
-import 'package:flutter_toastr/flutter_toastr.dart';
+// import 'package:flutter_toastr/flutter_toastr.dart';
 // import 'package:happyclean/pages/profile.dart';
 
 class HomePage extends StatefulWidget {
@@ -22,32 +22,32 @@ class _HomePageState extends State<HomePage> {
 
   List<TaskModel> tasklist = [];
   final StreamController _streamController = StreamController();
-  Future getAllTask() async {
-    tasklist = await TaskController().getTask();
-    _streamController.sink.add(tasklist);
-  }
+  // Future getAllTask() async {
+  //   tasklist = await TaskController().getTask();
+  //   _streamController.sink.add(tasklist);
+  // }
 
-  deleteTaskData(TaskModel taskModel) async {
-    await TaskController()
-        .deleteTask(taskModel)
-        .then((success) => {
-              FlutterToastr.show("Task Deleted Successfully", context,
-                  duration: FlutterToastr.lengthLong,
-                  position: FlutterToastr.top,
-                  backgroundColor: Colors.greenAccent)
-            })
-        .onError((error, stackTrace) => {
-              FlutterToastr.show("Task is Not Deleted", context,
-                  duration: FlutterToastr.lengthLong,
-                  position: FlutterToastr.top,
-                  backgroundColor: Colors.red)
-            });
-  }
+  // deleteTaskData(TaskModel taskModel) async {
+  //   await TaskController()
+  //       .deleteTask(taskModel)
+  //       .then((success) => {
+  //             FlutterToastr.show("Task Deleted Successfully", context,
+  //                 duration: FlutterToastr.lengthLong,
+  //                 position: FlutterToastr.top,
+  //                 backgroundColor: Colors.greenAccent)
+  //           })
+  //       .onError((error, stackTrace) => {
+  //             FlutterToastr.show("Task is Not Deleted", context,
+  //                 duration: FlutterToastr.lengthLong,
+  //                 position: FlutterToastr.top,
+  //                 backgroundColor: Colors.red)
+  //           });
+  // }
 
   @override
   void initState() {
     Timer.periodic(const Duration(seconds: 3), (timer) {
-      getAllTask();
+      // getAllTask();
     });
     super.initState();
   }

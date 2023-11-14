@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 // import 'dart:js';
 import 'package:happyclean/pages/login.dart';
 import 'package:happyclean/pages/register.dart';
+import 'package:happyclean/pages/profile/jadwal.dart';
 import 'package:happyclean/colors.dart';
 
 Route<dynamic> generateRoute(RouteSettings routeSettings) {
@@ -14,6 +15,8 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
       return MaterialPageRoute(builder: (context) => const Login());
     case "/register":
       return MaterialPageRoute(builder: (context) => const Register());
+    case "/jadwalkosong":
+      return MaterialPageRoute(builder: (context) => const Jadwal());
     default:
       return MaterialPageRoute(
           builder: (context) => Scaffold(

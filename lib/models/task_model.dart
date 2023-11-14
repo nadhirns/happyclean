@@ -18,10 +18,10 @@ class TaskModel {
   factory TaskModel.fromJson(Map<String, dynamic> json) {
     return TaskModel(
       id: json['id'],
-      namaTugas: json['nama_tugas'],
-      durasi: json['durasi'],
-      keterangan: json['keterangan'],
-      category: json['category'],
+      namaTugas: json['task_name'],
+      durasi: json['duration'],
+      keterangan: json['desc'],
+      category: json['task_categories_id'],
     );
   }
 

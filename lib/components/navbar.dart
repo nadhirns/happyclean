@@ -1,4 +1,6 @@
 // import 'dart:async';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 // import 'package:flutter_toastr/flutter_toastr.dart';
 
@@ -9,15 +11,15 @@ import 'package:intl/intl.dart';
 import 'package:happyclean/pages/homepage.dart';
 import 'package:happyclean/pages/profile.dart';
 // import 'package:happyclean/pages/addtask.dart';
-import 'package:happyclean/models/task_model.dart';
-import 'package:happyclean/controllers/task_controller.dart';
+// import 'package:happyclean/models/task_model.dart';
+// import 'package:happyclean/controllers/task_controller.dart';
 // import 'package:happyclean/components/textfield.dart';
 
 class Task {
   final DateTime? selectedDate;
   final TimeOfDay? selectedStartTime;
   final TimeOfDay? selectedEndTime;
-  bool completed;
+  int? userId;
   late DateTime combinedDateTimeStart;
   late DateTime combinedDateTimeEnd;
 
@@ -25,7 +27,7 @@ class Task {
     this.selectedDate,
     this.selectedStartTime,
     this.selectedEndTime,
-    this.completed = false,
+    this.userId,
   }) {
     if (selectedDate != null && selectedStartTime != null) {
       combinedDateTimeStart = DateTime(
@@ -46,7 +48,7 @@ class Task {
     }
 
     if (selectedDate != null && selectedEndTime != null) {
-      combinedDateTimeStart = DateTime(
+      combinedDateTimeEnd = DateTime(
         selectedDate!.year,
         selectedDate!.month,
         selectedDate!.day,
@@ -54,13 +56,13 @@ class Task {
         selectedEndTime!.minute,
       );
     } else if (selectedDate != null) {
-      combinedDateTimeStart = DateTime(
+      combinedDateTimeEnd = DateTime(
         selectedDate!.year,
         selectedDate!.month,
         selectedDate!.day,
       );
     } else {
-      combinedDateTimeStart = DateTime.now();
+      combinedDateTimeEnd = DateTime.now();
     }
   }
 }
@@ -76,16 +78,26 @@ class _NavbarState extends State<Navbar> {
   // final _formKey = GlobalKey<FormState>();
   TextEditingController taskName = TextEditingController();
   TextEditingController time = TextEditingController();
+  int userId = 0;
+
+  Future<Map<String, dynamic>?> getUserData() async {
+    SharedPreferences userData = await SharedPreferences.getInstance();
+    String? userdataget = userData.getString('login_data');
+    if (userdataget != null) {
+      final myUserData = json.decode(userdataget);
+      userId = myUserData['id'];
+    }
+  }
 
   final List<Task> tasks = [];
 
   // DateTime selectDate = DateTime.now();
 
-  addNewTask(TaskModel taskModel) async {
-    await TaskController()
-        .addTask(taskModel)
-        .then((success) => {Navigator.pop(context)});
-  }
+  // addNewTask(TaskModel taskModel) async {
+  //   await TaskController()
+  //       .addTask(taskModel)
+  //       .then((success) => {Navigator.pop(context)});
+  // }
 
   int _selTabIndex = 0;
 
@@ -121,48 +133,67 @@ class _NavbarState extends State<Navbar> {
         animationDuration: const Duration(milliseconds: 300),
         items: bottomNav);
 
-    return Scaffold(
-        appBar: AppBar(
-          backgroundColor: const Color(0xFF50CDD1),
-          leading: Container(
-            margin: const EdgeInsets.all(8),
-            child: Image.asset('assets/bubbles2.png'),
-          ),
-          title: Text(
-            'Happy Clean',
-            style: GoogleFonts.poppins(
-                textStyle: const TextStyle(fontWeight: FontWeight.w600)),
-          ),
-        ),
-        body: listPage[_selTabIndex],
-        bottomNavigationBar: bottomNavbar,
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: const Color(0xFF3F908B),
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (context) => TaskFormDialog(
-                onTaskAdded: (newTask) {
-                  setState(() {
-                    tasks.add(newTask);
-                  });
-                },
+    return FutureBuilder(
+        future: getUserData(),
+        builder: (context, _) => Scaffold(
+            appBar: AppBar(
+              backgroundColor: const Color(0xFF50CDD1),
+              leadingWidth: 0, // Set the width for the leading widget
+              leading: Container(),
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.all(8),
+                    child: Image.asset(
+                      'assets/bubbles2.png',
+                      width: 35,
+                      height: 35,
+                    ),
+                  ),
+                  Text(
+                    'Happy Clean',
+                    style: GoogleFonts.poppins(
+                      textStyle: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
               ),
-            );
-            // Navigator.push(
-            //     context, MaterialPageRoute(builder: ((context) => AddTask())));
-          },
-          child: const Icon(Icons.add),
-        ),
-        floatingActionButtonLocation:
-            FloatingActionButtonLocation.centerDocked);
+              centerTitle: true, // Center the title
+            ),
+            body: listPage[_selTabIndex],
+            bottomNavigationBar: bottomNavbar,
+            floatingActionButton: FloatingActionButton(
+              backgroundColor: const Color(0xFF3F908B),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => TaskFormDialog(
+                    onTaskAdded: (newTask) {
+                      setState(() {
+                        tasks.add(newTask);
+                      });
+                    },
+                    getId: userId,
+                  ),
+                );
+                // Navigator.push(
+                //     context, MaterialPageRoute(builder: ((context) => AddTask())));
+              },
+              child: const Icon(Icons.add),
+            ),
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerDocked));
   }
 }
 
 class TaskFormDialog extends StatefulWidget {
   final Function(Task) onTaskAdded;
+  final int getId;
 
-  const TaskFormDialog({Key? key, required this.onTaskAdded}) : super(key: key);
+  const TaskFormDialog(
+      {Key? key, required this.onTaskAdded, required this.getId})
+      : super(key: key);
 
   @override
   // ignore: library_private_types_in_public_api
@@ -211,8 +242,31 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
               ),
               Row(
                 children: [
-                  Text(
-                      'Hari/Tgl: ${selectedDate == null ? 'None' : DateFormat.yMMMd().format(selectedDate!)}'),
+                  RichText(
+                      text: TextSpan(children: [
+                    const TextSpan(
+                      text: 'Hari/Tgl: ',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 16, // Warna untuk 'Sampai Jam'
+                        // Gaya teks lainnya seperti ukuran font, dll.
+                      ),
+                    ),
+                    TextSpan(
+                      text: selectedDate == null
+                          ? '(None)'
+                          : DateFormat.yMMMd().format(selectedDate!),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: selectedDate == null
+                            ? Colors.grey
+                            : Colors
+                                .black, // Warna teks 'None' berwarna abu-abu
+                        // Gaya teks lainnya
+                      ),
+                    ),
+                  ])),
                   const Spacer(),
                   IconButton(
                       onPressed: () async {
@@ -232,9 +286,31 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
               ),
               Row(
                 children: [
-                  Text(
-                    'Dari Jam: ${selectedStartTime == null ? 'None' : selectedStartTime!.format(context)}',
-                  ),
+                  RichText(
+                      text: TextSpan(children: [
+                    const TextSpan(
+                      text: 'Dari Jam: ',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 16, // Warna untuk 'Sampai Jam'
+                        // Gaya teks lainnya seperti ukuran font, dll.
+                      ),
+                    ),
+                    TextSpan(
+                      text: selectedStartTime == null
+                          ? '(None)'
+                          : selectedStartTime!.format(context),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: selectedStartTime == null
+                            ? Colors.grey
+                            : Colors
+                                .black, // Warna teks 'None' berwarna abu-abu
+                        // Gaya teks lainnya
+                      ),
+                    ),
+                  ])),
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.access_alarms_rounded),
@@ -259,14 +335,18 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                         const TextSpan(
                           text: 'Sampai Jam: ',
                           style: TextStyle(
-                            color: Colors.black, // Warna untuk 'Sampai Jam'
+                            color: Colors.black,
+                            fontSize: 16, // Warna untuk 'Sampai Jam'
                             // Gaya teks lainnya seperti ukuran font, dll.
                           ),
                         ),
                         TextSpan(
-                          text:
-                              '${selectedEndTime == null ? 'None' : selectedEndTime!.format(context)}',
+                          text: selectedEndTime == null
+                              ? '(None)'
+                              : selectedEndTime!.format(context),
                           style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
                             color: selectedEndTime == null
                                 ? Colors.grey
                                 : Colors
@@ -302,17 +382,15 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
           onPressed: () {
             Navigator.of(context).pop();
           },
-          child: const Text('cancel'),
+          child: const Text('Cancel'),
         ),
         TextButton(
             onPressed: () {
-              //   final newTask = Task(
-              //   title: title,
-              //   notes: notes,
-              //   selectedDate: selectedDate,
-              //   selectedStartTime: selectedStartTime,
-              // );
-              Navigator.of(context).pop();
+              final newTask = Task(
+                  selectedDate: selectedDate,
+                  selectedStartTime: selectedStartTime,
+                  selectedEndTime: selectedEndTime,
+                  userId: widget.getId.toInt());
             },
             child: const Text('Add'))
       ],
